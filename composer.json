@@ -1,20 +1,9 @@
 {
-    "name": "telegram-bot/movie-bot",
-    "description": "PHP based Telegram Movie Bot for Render.com",
+    "name": "entertainment-tadka/movie-bot",
+    "description": "Telegram Movie Bot for Entertainment Tadka",
     "type": "project",
     "require": {
         "php": ">=8.1"
-    },
-    "autoload": {
-        "psr-4": {
-            "App\\": "src/"
-        }
-    },
-    "scripts": {
-        "post-install-cmd": [
-            "chmod 664 movies.csv users.json",
-            "chmod 775 uploads logs"
-        ]
     },
     "minimum-stability": "stable",
     "prefer-stable": true
