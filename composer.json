@@ -1,5 +1,5 @@
 {
-    "name": "telegram-movie-bot",
+    "name": "telegram-bot/movie-bot",
     "description": "PHP based Telegram Movie Bot for Render.com",
     "type": "project",
     "require": {
