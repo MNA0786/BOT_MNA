@@ -1,0 +1,30 @@
+# Logs
+logs/*.log
+!logs/.gitkeep
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# System files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+*.temp
+
+# Backup files
+*.bak
+*.backup
+
+# Sensitive data
+movies_backup.csv
+requests_backup.json
