@@ -18,14 +18,27 @@ RUN chown -R www-data:www-data /var/www/html
 # Working directory
 WORKDIR /var/www/html
 
-# Copy files
+# Copy all files
 COPY . .
+
+# Create missing files if they don't exist
+RUN if [ ! -f "movies.csv" ]; then \
+    echo "movie_name,message_id,channel_id,added_at" > movies.csv; \
+    fi && \
+    if [ ! -f "users.json" ]; then \
+    echo '{"users":[],"stats":{"total_searches":0,"last_updated":null}}' > users.json; \
+    fi
+
+# Create directories if they don't exist
+RUN mkdir -p logs uploads backups
 
 # File permissions set karo
 RUN chmod 755 /var/www/html && \
     chmod 644 /var/www/html/movies.csv && \
     chmod 644 /var/www/html/users.json && \
     chmod 755 /var/www/html/uploads/ && \
+    chmod 755 /var/www/html/logs/ && \
+    chmod 755 /var/www/html/backups/ && \
     chown -R www-data:www-data /var/www/html
 
 # Composer dependencies (agar required ho)
