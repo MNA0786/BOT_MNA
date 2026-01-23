@@ -1,37 +1,76 @@
+# ================================================
+# .htaccess for Telegram Movie Bot Pro
+# ================================================
+# Created: 21st January 2026
+# ================================================
+
+# Enable rewrite engine
+RewriteEngine On
+
+# Set PHP values
+php_value memory_limit 256M
+php_value upload_max_filesize 50M
+php_value post_max_size 50M
+php_value max_execution_time 300
+php_value max_input_time 300
+php_value display_errors Off
+php_value log_errors On
+php_value error_log logs/php_errors.log
+php_value date.timezone Asia/Kolkata
+
 # Security headers
 Header set X-Content-Type-Options "nosniff"
 Header set X-Frame-Options "SAMEORIGIN"
 Header set X-XSS-Protection "1; mode=block"
 Header set Referrer-Policy "strict-origin-when-cross-origin"
 
-# Rewrite engine
-RewriteEngine On
+# Prevent directory listing
+Options -Indexes
 
-# Allow access to specific files only
-RewriteRule ^(index\.php|movies\.csv|users\.json|bot_stats\.json|logs/.*|backups/.*)$ - [L]
+# Protect sensitive files
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
 
-# Block access to sensitive files
-RewriteRule ^(\.git|\.env|\.htaccess|Dockerfile|docker-compose\.yml|composer\.(json|lock)|render\.yaml)$ - [F]
+<FilesMatch "\.(log|json|bak|env|sql)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
 
-# Block access to hidden files
-RewriteRule /\. - [F,L]
+# Allow access to specific endpoints
+<Files "index.php">
+    Order allow,deny
+    Allow from all
+</Files>
 
-# Block SQL injection attempts
-RewriteCond %{QUERY_STRING} (\<|%3C).*script.*(\>|%3E) [NC,OR]
-RewriteCond %{QUERY_STRING} GLOBALS(=|\[|\%[0-9A-Z]{0,2}) [OR]
-RewriteCond %{QUERY_STRING} _REQUEST(=|\[|\%[0-9A-Z]{0,2})
-RewriteRule ^(.*)$ - [F,L]
+<Files "movies.csv">
+    Order allow,deny
+    Allow from all
+</Files>
 
-# Redirect all requests to index.php (for webhook)
+# Redirect all requests to index.php except existing files
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ index.php [QSA,L]
 
-# Disable directory listing
-Options -Indexes
+# Handle query parameters
+RewriteCond %{QUERY_STRING} ^(.*)$
+RewriteRule ^(.*)$ index.php?$1 [L,QSA]
 
-# Set PHP values
-php_flag display_errors off
-php_value upload_max_filesize 10M
-php_value post_max_size 10M
-php_value memory_limit 128M
+# Gzip compression
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
+</IfModule>
+
+# Cache control for static files
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpg "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType text/html "access plus 1 hour"
+</IfModule>
