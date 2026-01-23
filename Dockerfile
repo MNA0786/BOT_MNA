@@ -5,15 +5,13 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     unzip \
     git \
+    curl \
+    && rm -rf /var/lib/apt/lists/* \
     && docker-php-ext-install zip
-
-# Composer install karo
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Apache configuration
 RUN a2enmod rewrite headers
-COPY .htaccess /var/www/html/.htaccess
-RUN chown -R www-data:www-data /var/www/html
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
 # Working directory
 WORKDIR /var/www/html
@@ -21,27 +19,40 @@ WORKDIR /var/www/html
 # Copy all files
 COPY . .
 
-# Create missing files if they don't exist
-RUN if [ ! -f "movies.csv" ]; then \
-    echo "movie_name,message_id,channel_id,added_at" > movies.csv; \
-    fi && \
-    if [ ! -f "users.json" ]; then \
-    echo '{"users":[],"stats":{"total_searches":0,"last_updated":null}}' > users.json; \
-    fi
-
-# Create directories if they don't exist
-RUN mkdir -p logs uploads backups
+# Create necessary directories
+RUN mkdir -p uploads logs backups \
+    && chmod -R 755 uploads logs backups
 
 # File permissions set karo
-RUN chmod 755 /var/www/html && \
-    chmod 644 /var/www/html/movies.csv && \
-    chmod 644 /var/www/html/users.json && \
-    chmod 755 /var/www/html/uploads/ && \
-    chmod 755 /var/www/html/logs/ && \
-    chmod 755 /var/www/html/backups/ && \
-    chown -R www-data:www-data /var/www/html
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html \
+    && chmod 664 movies.csv users.json bot_stats.json 2>/dev/null || true
 
-# Composer dependencies (agar required ho)
-RUN if [ -f "composer.json" ]; then composer install --no-dev --optimize-autoloader; fi
+# Create default files if they don't exist
+RUN if [ ! -f "movies.csv" ]; then \
+    echo "movie_name,message_id,channel_id,added_at" > movies.csv; \
+    fi
 
+RUN if [ ! -f "users.json" ]; then \
+    echo '{"users":{},"stats":{"total_searches":0,"total_users":0,"last_updated":null},"message_logs":[],"total_requests":0}' > users.json; \
+    fi
+
+RUN if [ ! -f "bot_stats.json" ]; then \
+    echo '{"total_movies":0,"total_users":0,"total_searches":0,"last_updated":"'$(date -Iseconds)'"}' > bot_stats.json; \
+    fi
+
+# Copy .htaccess
+COPY .htaccess .htaccess
+
+# Apache config
+RUN chmod 644 .htaccess
+
+# Expose port
 EXPOSE 80
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost/ || exit 1
+
+# Start Apache
+CMD ["apache2-foreground"]
