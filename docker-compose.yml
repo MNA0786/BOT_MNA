@@ -1,17 +1,26 @@
 version: '3.8'
 
 services:
-  web:
+  telegram-movie-bot:
     build: .
     ports:
       - "8080:80"
     volumes:
       - ./movies.csv:/var/www/html/movies.csv
       - ./users.json:/var/www/html/users.json
+      - ./bot_stats.json:/var/www/html/bot_stats.json
       - ./uploads:/var/www/html/uploads
       - ./logs:/var/www/html/logs
+      - ./backups:/var/www/html/backups
     environment:
       - BOT_TOKEN=${BOT_TOKEN}
       - REQUEST_GROUP_ID=${REQUEST_GROUP_ID}
       - CHANNELS=${CHANNELS}
+      - OWNER_ID=${OWNER_ID:-1080317415}
     restart: unless-stopped
+    networks:
+      - movie-bot-network
+
+networks:
+  movie-bot-network:
+    driver: bridge
