@@ -1,14 +1,23 @@
 {
-    "name": "telegram-bot/movie-bot",
-    "description": "PHP based Telegram Movie Bot for Render.com",
+    "name": "entertainment-tadka/telegram-movie-bot-pro",
+    "description": "Telegram Movie Bot Pro Advanced Complete Version",
     "type": "project",
+    "license": "Proprietary",
+    "authors": [
+        {
+            "name": "Entertainment Tadka Team",
+            "email": "admin@entertainmenttadka.com"
+        }
+    ],
     "require": {
-        "php": ">=8.1",
+        "php": ">=8.1.0",
+        "ext-curl": "*",
         "ext-json": "*",
-        "ext-curl": "*"
+        "ext-mbstring": "*"
     },
     "require-dev": {
-        "ext-zip": "*"
+        "ext-curl": "*",
+        "ext-json": "*"
     },
     "autoload": {
         "files": [
@@ -17,19 +26,36 @@
     },
     "scripts": {
         "post-install-cmd": [
-            "chmod 664 movies.csv users.json bot_stats.json",
-            "chmod 775 uploads logs backups",
-            "mkdir -p uploads logs backups"
+            "chmod -R 755 .",
+            "chmod -R 777 logs backups uploads cache temp"
         ],
-        "post-update-cmd": [
-            "echo 'Setup completed successfully!'"
+        "deploy-setup": [
+            "php -r \"file_put_contents('movies.csv', 'movie_name,message_id,channel_id\\n');\"",
+            "php -r \"mkdir('logs', 0777, true); mkdir('backups', 0777, true); mkdir('uploads', 0777, true);\""
+        ],
+        "test": [
+            "php -f index.php -- deploy=1"
         ]
     },
     "config": {
-        "platform-check": false,
         "optimize-autoloader": true,
-        "sort-packages": true
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "platform-check": false
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "keywords": [
+        "telegram",
+        "bot",
+        "movie",
+        "entertainment",
+        "php",
+        "telegram-bot"
+    ],
+    "support": {
+        "email": "support@entertainmenttadka.com",
+        "issues": "https://github.com/entertainment-tadka/telegram-movie-bot/issues",
+        "source": "https://github.com/entertainment-tadka/telegram-movie-bot"
+    }
 }
