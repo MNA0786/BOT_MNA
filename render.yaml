@@ -1,38 +1,184 @@
+# ============================================================
+# Render.com Configuration for Telegram Movie Bot Pro
+# ============================================================
+# Created: 21st January 2026
+# Version: 3.0.0 Ultimate Pro
+# Website: https://entertainmenttadka.com
+# ============================================================
+
 services:
+  # Main Web Service for Telegram Bot
   - type: web
-    name: telegram-movie-bot
+    name: entertainment-tadka-pro
     env: docker
     dockerfilePath: ./Dockerfile
+    dockerContext: .
     plan: free
+    autoDeploy: true
+    branch: main
+    
+    # Health Check
+    healthCheckPath: /?health=1
+    healthCheckTimeout: 10
+    
+    # Environment Variables (Required)
     envVars:
+      # REQUIRED: Telegram Bot Token (Get from @BotFather)
       - key: BOT_TOKEN
         sync: false
-        value: your_bot_token_here
+        generateValue: true
+        
+      # REQUIRED: Telegram Channel IDs
+      - key: CHANNELS
+        sync: false
+        value: "-1003181705395,-1002831605258,-1002964109368,-1003251791991,-1002337293281,-1003614546520"
+        
+      # OPTIONAL: Request Group ID
       - key: REQUEST_GROUP_ID
         sync: false
         value: "-1003083386043"
-      - key: CHANNELS
-        sync: false
-        value: "-1003251791991,-1002337293281,-1003181705395,-1002831605258,-1002964109368,-1003614546520"
-      - key: OWNER_ID
+        
+      # OPTIONAL: Admin User IDs
+      - key: ADMIN_IDS
         sync: false
         value: "1080317415"
-    healthCheckPath: /
-    autoDeploy: true
+        
+      # System Environment
+      - key: NODE_ENV
+        value: production
+        
+      - key: APP_ENV
+        value: production
+        
+      - key: APP_DEBUG
+        value: "false"
+        
+      - key: TZ
+        value: Asia/Kolkata
+        
+      # PHP Settings
+      - key: PHP_MEMORY_LIMIT
+        value: 256M
+        
+      - key: PHP_UPLOAD_MAX_FILESIZE
+        value: 50M
+        
+      - key: PHP_POST_MAX_SIZE
+        value: 50M
+        
+      - key: PHP_MAX_EXECUTION_TIME
+        value: "300"
+    
+    # Disk for persistent storage
     disk:
       name: data
       mountPath: /var/www/html
       sizeGB: 1
-    scaling:
-      minInstances: 1
-      maxInstances: 1
+      
+    # Advanced Settings
+    numInstances: 1
+    regions:
+      - oregon  # US West (Fast for Telegram API)
+      - frankfurt  # EU Central
+      - singapore  # Asia Pacific
+      
+    # Build Command (Optional)
+    buildCommand: |
+      echo "🔨 Building Entertainment Tadka Pro..."
+      chmod -R 755 .
+      mkdir -p logs backups uploads cache temp
+      chmod -R 777 logs backups uploads cache temp
+      echo "✅ Build completed!"
+      
+    # Start Command
+    startCommand: apache2-foreground
+    
+    # CORS Headers
     headers:
       - path: /*
-        name: X-Content-Type-Options
-        value: nosniff
+        name: Access-Control-Allow-Origin
+        value: "*"
       - path: /*
-        name: X-Frame-Options
-        value: SAMEORIGIN
+        name: Access-Control-Allow-Methods
+        value: "GET, POST, OPTIONS"
       - path: /*
-        name: X-XSS-Protection
-        value: 1; mode=block
+        name: Access-Control-Allow-Headers
+        value: "Content-Type, Authorization"
+    
+    # Auto-scaler (for paid plans)
+    # autoScaling:
+    #   minInstances: 1
+    #   maxInstances: 3
+    #   targetMemoryPercent: 70
+    #   targetCPUPercent: 70
+    
+    # Alert Settings
+    alerts:
+      - type: deployment
+      - type: cpu
+        value: 80
+      - type: memory
+        value: 80
+      - type: disk
+        value: 80
+
+# Cron Jobs (for auto-backup, cleanup)
+# jobs:
+#   - name: daily-backup
+#     env: docker
+#     dockerfilePath: ./Dockerfile
+#     plan: free
+#     schedule: "0 0 * * *"  # Daily at midnight
+#     command: curl -X GET https://entertainment-tadka-pro.onrender.com/?action=backup
+#     envVars:
+#       - key: BOT_TOKEN
+#         fromService:
+#           type: web
+#           name: entertainment-tadka-pro
+#           envVarKey: BOT_TOKEN
+#   
+#   - name: hourly-cleanup
+#     env: docker
+#     dockerfilePath: ./Dockerfile
+#     plan: free
+#     schedule: "0 * * * *"  # Hourly
+#     command: curl -X GET https://entertainment-tadka-pro.onrender.com/?action=cleanup
+
+# Database (if needed in future)
+# databases:
+#   - name: telegram-bot-db
+#     databaseName: telegram_bot
+#     plan: free
+#     ipAllowList: []
+#     region: oregon
+
+# ============================================================
+# DEPLOYMENT INSTRUCTIONS:
+# ============================================================
+# 1. Push this file to your GitHub repository
+# 2. Go to Render.com Dashboard
+# 3. Click "New +" → "Blueprint"
+# 4. Connect your GitHub repository
+# 5. Click "Apply" to deploy
+# 6. Set your BOT_TOKEN in Environment Variables
+# 7. Setup webhook: https://your-app.onrender.com/?action=setwebhook
+# ============================================================
+
+# ============================================================
+# ENVIRONMENT VARIABLES GUIDE:
+# ============================================================
+# BOT_TOKEN: Get from @BotFather (e.g., 123456:ABC-DEF1234ghIkl)
+# CHANNELS: Your Telegram channel IDs (e.g., -1001234567890)
+# REQUEST_GROUP_ID: Group for movie requests (optional)
+# ADMIN_IDS: Admin user IDs separated by comma
+# ============================================================
+
+# ============================================================
+# TEST ENDPOINTS AFTER DEPLOYMENT:
+# ============================================================
+# 1. Health Check: https://your-app.onrender.com/?health=1
+# 2. Deployment Test: https://your-app.onrender.com/?deploy=1
+# 3. Webhook Setup: https://your-app.onrender.com/?action=setwebhook
+# 4. Test Save: https://your-app.onrender.com/?test_save=1
+# 5. Check CSV: https://your-app.onrender.com/?check_csv=1
+# ============================================================
