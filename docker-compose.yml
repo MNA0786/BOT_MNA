@@ -1,26 +1,86 @@
+# ================================================
+# Docker Compose for Telegram Movie Bot Pro
+# ================================================
+# Created: 21st January 2026
+# Version: 3.0.0 Ultimate Pro
+# ================================================
+
 version: '3.8'
 
 services:
-  telegram-movie-bot:
+  telegram-bot:
     build: .
+    container_name: telegram-movie-bot-pro
+    restart: unless-stopped
     ports:
       - "8080:80"
+    environment:
+      - BOT_TOKEN=${BOT_TOKEN:-YOUR_BOT_TOKEN_HERE}
+      - CHANNELS=${CHANNELS:--1003181705395,-1002831605258,-1002964109368}
+      - REQUEST_GROUP_ID=${REQUEST_GROUP_ID:--1003083386043}
+      - TZ=Asia/Kolkata
     volumes:
       - ./movies.csv:/var/www/html/movies.csv
       - ./users.json:/var/www/html/users.json
       - ./bot_stats.json:/var/www/html/bot_stats.json
-      - ./uploads:/var/www/html/uploads
+      - ./requests.json:/var/www/html/requests.json
+      - ./settings.json:/var/www/html/settings.json
       - ./logs:/var/www/html/logs
       - ./backups:/var/www/html/backups
-    environment:
-      - BOT_TOKEN=${BOT_TOKEN}
-      - REQUEST_GROUP_ID=${REQUEST_GROUP_ID}
-      - CHANNELS=${CHANNELS}
-      - OWNER_ID=${OWNER_ID:-1080317415}
-    restart: unless-stopped
+      - ./uploads:/var/www/html/uploads
     networks:
-      - movie-bot-network
+      - telegram-bot-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Optional: phpMyAdmin for database management (if using MySQL)
+  # phpmyadmin:
+  #   image: phpmyadmin/phpmyadmin
+  #   container_name: telegram-bot-phpmyadmin
+  #   restart: unless-stopped
+  #   ports:
+  #     - "8081:80"
+  #   environment:
+  #     - PMA_HOST=mysql
+  #     - PMA_PORT=3306
+  #     - PMA_ARBITRARY=1
+  #   depends_on:
+  #     - mysql
+  #   networks:
+  #     - telegram-bot-network
+
+  # Optional: MySQL Database (if needed in future)
+  # mysql:
+  #   image: mysql:8.0
+  #   container_name: telegram-bot-mysql
+  #   restart: unless-stopped
+  #   environment:
+  #     - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD:-rootpassword}
+  #     - MYSQL_DATABASE=${DB_NAME:-telegram_bot_db}
+  #     - MYSQL_USER=${DB_USER:-telegram_user}
+  #     - MYSQL_PASSWORD=${DB_PASSWORD:-telegram_password}
+  #   ports:
+  #     - "3306:3306"
+  #   volumes:
+  #     - mysql_data:/var/lib/mysql
+  #     - ./mysql-init:/docker-entrypoint-initdb.d
+  #   networks:
+  #     - telegram-bot-network
 
 networks:
-  movie-bot-network:
+  telegram-bot-network:
     driver: bridge
+
+# Uncomment if using MySQL
+# volumes:
+#   mysql_data:
+#     driver: local
