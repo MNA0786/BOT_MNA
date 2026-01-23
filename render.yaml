@@ -7,9 +7,32 @@ services:
     envVars:
       - key: BOT_TOKEN
         sync: false
+        value: your_bot_token_here
       - key: REQUEST_GROUP_ID
         sync: false
+        value: "-1003083386043"
       - key: CHANNELS
         sync: false
+        value: "-1003251791991,-1002337293281,-1003181705395,-1002831605258,-1002964109368,-1003614546520"
+      - key: OWNER_ID
+        sync: false
+        value: "1080317415"
     healthCheckPath: /
     autoDeploy: true
+    disk:
+      name: data
+      mountPath: /var/www/html
+      sizeGB: 1
+    scaling:
+      minInstances: 1
+      maxInstances: 1
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: X-Frame-Options
+        value: SAMEORIGIN
+      - path: /*
+        name: X-XSS-Protection
+        value: 1; mode=block
